@@ -1,0 +1,37 @@
+pipeline {
+    
+    agent any
+
+    stages {
+
+        stage ("Getting Souce Code From Git") {
+            steps {
+                git 'https://github.com/saikirangude/Git-repo2.git'
+            }
+        }
+
+        stage ("Compiling The Source Code") {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage ("Testing The Source Code") {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage ("Generating Artifact") {
+            steps {
+                sh 'mvn package'
+            }
+        }
+
+       stage ("Deploying Artifact On Tomcat Server") {
+           steps {
+               deploy adapters: [tomcat8(credentialsId: 'Tomcat_Deploy_Credentials', path: '', url: 'http://54.224.241.61:8080/')], contextPath: null, war: '**/*.war'
+           }
+       }
+    }
+}
