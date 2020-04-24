@@ -1,0 +1,43 @@
+pipeline {
+    
+    agent any
+
+    stages {
+
+        stage ("Getting Souce Code From Git") {
+            steps {
+                git 'https://github.com/saikirangude/Git-repo2.git'
+            }
+        }
+
+        stage ("Compiling The Source Code") {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage ("Testing The Source Code") {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage ("Generating Artifact") {
+            steps {
+                sh 'mvn package'
+            }
+        }
+
+       stage ("Deploying Artifact On Tomcat Server") {
+           steps {
+               deploy adapters: [tomcat8(credentialsId: 'Tomcat_Deploy_Credentials', path: '', url: 'http://54.85.168.98:8080/')], contextPath: null, war: '**/*.war'
+           }
+       }
+
+       stage ("Deploying Artifact Into Nexus Repository") {
+           steps {
+               nexusArtifactUploader artifacts: [[artifactId: 'trucks.war', classifier: '', file: '/home/ec2-user/jenkins-home/workspace/Pipeline-1/target/trucks.war', type: 'war']], credentialsId: 'Nexus-Credentials', groupId: 'MyGroupId', nexusUrl: '54.196.56.7:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'artifact-repository-manager-3', version: '1.0-SNAPSHOTS'
+           }
+       }
+    }
+}
