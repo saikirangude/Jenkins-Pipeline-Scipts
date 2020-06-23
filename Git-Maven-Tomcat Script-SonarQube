@@ -1,0 +1,45 @@
+pipeline {
+    
+    agent any
+
+    stages {
+
+        stage ("Getting Souce Code From Git") {
+            steps {
+                git 'https://github.com/saikirangude/Git-repo2.git'
+            }
+        }
+
+        stage ("Compiling The Source Code") {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage ("Testing The Source Code") {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage ("Generating Artifact") {
+            steps {
+                sh 'mvn package'
+            }
+        }
+        
+        stage('SonarQube analysis') {
+            steps {
+            withSonarQubeEnv('SonarQube-Server') {
+                sh 'mvn package sonar:sonar'
+               }
+            }
+        }
+ 
+       stage ("Deploying Artifact On Tomcat Server") {
+           steps {
+               deploy adapters: [tomcat9(credentialsId: 'Tomcat_Deploy_Credentials', path: '', url: 'http://3.16.45.216:8080/')], contextPath: 'war', war: '**/*.war'
+           }
+       }
+    }
+}
